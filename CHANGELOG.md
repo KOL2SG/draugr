@@ -12,6 +12,36 @@ and move it under a version on release.
 
 _Nothing yet._
 
+## [0.151.0] - 2026-10-11
+
+### Added
+
+- **Each action in `report.json` carries a `kind`**, the kind of work it is: `bump`, `code`, `infrastructure`, `credential`, `wait` or `decide`. A pipeline or a dashboard can split the fix list into the lists people work from.
+
+- **A component can import a SARIF file another tool wrote**, with `components[].imports` naming the control and the file. Its findings are ranked by the component's exposure and criticality and judged by the same gate. A file written for another commit stops the run, and one that states no commit is listed as an `unbound-imports` caveat.
+
+### Changed
+
+- **The Caveats block names each caveat by the kind `config.gate.failOnCaveats` takes**, such as `unread-files` or `not-checked`, and its heading names that setting, so a kind copied from a row into it makes that caveat fail the run.
+
+- **Fix First names the lowest release that fixes a finding** when the advisory lists one fix per release line. `flask 2.0.1 → 2.3.2 +1`, where `+1` counted a second fixed release, now reads `flask 2.0.1 → 2.2.5`, and the compact view and the HTML report name the same release.
+
+- **Fix First names the package on every dependency finding.** A row that read `fix upgrade to 3.0.18-1~deb12u2` now reads `libssl3 3.0.14-1~deb12u2 → 3.0.18-1~deb12u2`, and one with no release reads `openssl 3.0.14 · fix no upgrade published`. `--view compact` reads `libssl3 → 3.0.18-1~deb12u2`, and the same CVE in two packages of an image prints as two rows that name different packages.
+
+- **Breaking: `draugr validate` refuses a publisher field its kind does not read.** It refuses `dir` on `github`, a report format the kind does not deliver, such as `html` on `github`, and a `file` publisher with no `dir`. Remove the field or add the `dir`; the descriptor reference lists the fields each kind reads under **Publisher fields**.
+
+### Fixed
+
+- **The `github` publisher dismisses the code scanning alert of every finding accepted in Draugr.** It dismisses the alert as won't fix, with the reason and who accepted it in the comment, because code scanning ignores SARIF suppressions and these alerts stayed open. An alert Draugr dismissed reopens when its finding is no longer accepted, and one a person dismissed is left alone.
+
+- **`draugr scan --help` and the CLI reference list `unbound-imports`** among the kinds of caveat `--fail-on-caveats` takes.
+
+- **An editor using the Saga schema accepts the publisher values `draugr validate` accepts**: a numeric GitLab project id in `repo`, and numbers in `commit`, `project` and a host's `auth.header`. It flags a field on a kind that does not read it, the same field `draugr validate` refuses.
+
+- **A run narrowed with `--controls` or `--components` no longer lists an exclusion or a VEX statement as unmatched when its findings were in the part that did not run.** A narrowed run checks no exclusion rule, and checks a VEX statement only when everything it could match was scanned. Run without those flags to check all of them.
+
+- **A statement from `config.vexSources` that matched a finding in one component is no longer listed as unmatched under the other components.**
+
 ## [0.150.0] - 2026-10-07
 
 ### Added
@@ -6303,7 +6333,8 @@ First public preview of Draugr.
 - **Early preview** — the CLI and the Saga schema may change before 1.0.
 - Requires **Trivy** on your `PATH` (and `git` for repository scans).
 
-[Unreleased]: https://github.com/draugr-dev/draugr/compare/v0.150.0...HEAD
+[Unreleased]: https://github.com/draugr-dev/draugr/compare/v0.151.0...HEAD
+[0.151.0]: https://github.com/draugr-dev/draugr/releases/tag/v0.151.0
 [0.150.0]: https://github.com/draugr-dev/draugr/releases/tag/v0.150.0
 [0.149.1]: https://github.com/draugr-dev/draugr/releases/tag/v0.149.1
 [0.149.0]: https://github.com/draugr-dev/draugr/releases/tag/v0.149.0
