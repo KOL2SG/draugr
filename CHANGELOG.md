@@ -12,6 +12,14 @@ and move it under a version on release.
 
 _Nothing yet._
 
+## [0.152.0] - 2026-10-17
+
+### Added
+
+- **See how much of a run went to refreshing scanner data.** When refreshing takes five seconds or more and at least a quarter of the run, the header reads `15.988s · 6.2s refreshing scanner data`. `--evidence` lists each refresh of a second or more, the progress line names a refresh once it has run a second, and `report.json` records every refresh under `stats.dataRefresh`.
+
+- **See how current each scanner's data is.** `draugr scan --evidence` and `draugr doctor` list when each Trivy, Grype, Nuclei and retire.js data source was downloaded and, where the tool records it, published. A copy the tool will not use is marked `refused as too old`. `report.json` carries the same under `scannerData`.
+
 ## [0.151.0] - 2026-10-11
 
 ### Added
@@ -6333,7 +6341,8 @@ First public preview of Draugr.
 - **Early preview** — the CLI and the Saga schema may change before 1.0.
 - Requires **Trivy** on your `PATH` (and `git` for repository scans).
 
-[Unreleased]: https://github.com/draugr-dev/draugr/compare/v0.151.0...HEAD
+[Unreleased]: https://github.com/draugr-dev/draugr/compare/v0.152.0...HEAD
+[0.152.0]: https://github.com/draugr-dev/draugr/releases/tag/v0.152.0
 [0.151.0]: https://github.com/draugr-dev/draugr/releases/tag/v0.151.0
 [0.150.0]: https://github.com/draugr-dev/draugr/releases/tag/v0.150.0
 [0.149.1]: https://github.com/draugr-dev/draugr/releases/tag/v0.149.1
