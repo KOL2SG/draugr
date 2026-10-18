@@ -19,7 +19,7 @@ name: Evals
 #
 # - Dispatch only. A run executes the named commit's code with the key, so for a pull request from a
 #   fork, name the head commit you read, and a later push cannot ride on the review.
-# - Three runs per case by default, about US$3.20 for the suite; one run is about US$0.65.
+# - Three runs per case by default, about US$6.30 for the suite; one run is about US$2.10.
 # - A fixed suite. The case count, each case's turn limit and the cost ceiling below are all in this
 #   repository, so nothing in a pull request's description or title changes what a run spends.
 # - One run per commit. A second dispatch for the same commit cancels the run in flight.
@@ -37,7 +37,7 @@ on:
         required: true
         type: string
       runs:
-        description: Runs per case. The cost ceiling is US$2 per run per case.
+        description: Runs per case. The cost ceiling is US$3 for each run of the suite.
         required: false
         type: number
         default: 3
@@ -51,8 +51,8 @@ concurrency:
 
 env:
   GO_VERSION: "1.26.9"
-  EVAL_MODEL: claude-sonnet-5
-  JUDGE_MODEL: claude-haiku-4-5
+  EVAL_MODEL: claude-sonnet-5-5
+  JUDGE_MODEL: claude-haiku-5-5
 
 jobs:
   evals:
@@ -73,11 +73,16 @@ jobs:
       # The server the plugin starts is the draugr first on PATH, so it is this commit's build rather
       # than a release. Each run gets a temporary home, which hides ~/.draugr/bin from Draugr's own
       # lookup, so the scanners go on PATH too.
+      #
+      # The cases scan with gitleaks and semgrep. Given their descriptor, check_tools also lists
+      # gosec, which can serve sast, and syft as required, and reports the machine not ready
+      # without them, which stops a model before it scans. Both are installed so that a score
+      # measures the model and the plugin.
       - name: Build draugr and provision the scanners the cases use
         run: |
           set -euo pipefail
           make build
-          ./bin/draugr tools install -y gitleaks semgrep
+          ./bin/draugr tools install -y gitleaks semgrep gosec syft
           echo "$GITHUB_WORKSPACE/bin" >> "$GITHUB_PATH"
           echo "$HOME/.draugr/bin" >> "$GITHUB_PATH"
 
@@ -91,11 +96,16 @@ jobs:
 
       # --ablation none runs the plugin arm only: the gate is whether the plugin does its job, and a
       # no-plugin baseline would double the cost to report a delta the exit code ignores.
+      #
+      # --keep-temp leaves each run's sandbox in place, so each run's trace.jsonl, the session the
+      # graders read, is uploaded with the results. The transcript shows why a run failed.
       - name: Run the suite
         working-directory: contrib/claude-plugin
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           RUNS: ${{ inputs.runs }}
+          # survey-no-cluster asks for a namespace's images with no cluster to read them from.
+          KUBECONFIG: /nonexistent/kubeconfig
         run: |
           set -euo pipefail
           if [ -z "$ANTHROPIC_API_KEY" ]; then
@@ -112,8 +122,9 @@ jobs:
             --judge-model "$JUDGE_MODEL" \
             --threshold 0.8 \
             --runs "$RUNS" \
-            --max-cost-usd "$((RUNS * 2))" \
+            --max-cost-usd "$((RUNS * 3))" \
             --no-publish \
+            --keep-temp \
             --json "$RUNNER_TEMP/results.json" \
             -j 4
 
@@ -124,4 +135,5 @@ jobs:
           path: |
             ${{ runner.temp }}/results.json
             contrib/claude-plugin/evals/results/
+            /tmp/claude-eval-*/out/trace.jsonl
           if-no-files-found: ignore
