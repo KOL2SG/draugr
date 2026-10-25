@@ -17,6 +17,7 @@ Draugr's fix list answers a different question: **what should I do, and what wil
 WHAT TO DO  <n> actions clear <m> findings
   <band>  <the action>
           <the scanner's description of the rule, when the action names one>
+          <each scanner and the rules it flags the line with, for a line of code>
           component <component, when there are several> · control <control> · <n> findings ·
           <upstream, when not yours> · <where it applies> ·
           <the rule it names, and how many more it clears>
@@ -41,11 +42,17 @@ three rows makes the repetitive work crowd out everything else.
 | `secrets` | rule | remove the credential and rotate it |
 | `licenses`, when somebody else builds it | image or repository | review the licenses it carries |
 | `licenses`, in your own dependencies | package and license | replace the package or accept its license |
+| `sast` | component, repository, file and line | change that line of code |
 | `iac` | rule | apply one fix across N files |
 | `kubernetes` | check | one cluster setting |
 
 Only where the fix genuinely is one fix. Twelve benchmark checks against one cluster are twelve
 things to change, and folding them together because they share a prefix would hide eleven of them.
+
+Several rules often flag the same line. Those findings are one row, because one change clears them.
+A shell command built from request input, flagged by Bandit's B602 and three Semgrep rules, is one
+row that clears four findings. A rule that flags ten lines is ten rows, because each line is its
+own edit.
 
 A dependency action belongs to one component and one installed version. Two components carrying
 the same library are two owners, and a second copy at another version needs its own target, so
@@ -182,12 +189,13 @@ hides work you could have done; the reverse costs a row you skip.
 | the band | the highest band among the findings this one action clears |
 | the action | what to do, naming the thing and the version in hand |
 | the summary | the scanner's description of the rule, under an action that names a rule |
+| the rules | under an action for a line of code, the rules that flag it, by scanner and starting with the rule the title quotes, and a count of those that do not fit |
 | the component | which component the action belongs to, named when the list spans more than one |
 | the control | which control the findings came from |
 | the count | how many findings this action clears |
 | `upstream` | present only where the component is somebody else's to fix |
 | `major · beyond policy minor` | the size of an upgrade step and the component's [`fixes.upgrade`](../reference/saga-schema.md#configfixes) it exceeds |
-| the locations | the files its findings are in, up to two named and the rest counted as `and N more`; `--view findings` lists every one |
+| the locations | the files its findings are in, up to two named and the rest counted as `and N more`; `--view findings` lists every one. Each names its repository when the action's findings span more than one, and an action for a line of code names it once the list spans several |
 
 An upgrade names its target version after an arrow. The target is the lowest release that clears
 every finding the row counts, ordered by the package's own ecosystem, so advisories naming several
@@ -203,8 +211,16 @@ clears, listed with the first and ranked by the worse band of the two. Where ver
 semantic, as a distribution's are, the action stays whole, and a line under the heading counts
 those actions by ecosystem.
 
+An action for a line of code is titled with one scanner's description of the flaw, in quotes.
+Draugr takes it from the finding with the worst band, then the highest severity, then the highest
+score. Among findings that rank alike, it takes the longest description that fits the title uncut,
+then the lowest rule id. The title is the same on every run. A description too long for the title
+is cut inside the quotation marks. A line that one rule flags, with a description too long for the
+title, is titled with the rule's name, and the description is on the line under it.
+
 Each row names one rule identifier, linked to whatever the scanner published about it, and counts
-the rest. To read what a check means and how to fix it:
+the rest. A row for a line of code names the rules that flag it, by scanner, and counts those that
+do not fit. To read what a check means and how to fix it:
 
 ```bash
 draugr explain kube-bench/cis/4.3.1
