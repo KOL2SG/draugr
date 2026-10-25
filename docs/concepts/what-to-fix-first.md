@@ -66,10 +66,10 @@ worse than listing a fact, so the annotations come first and the default follows
 auditor reading `results.sarif` sees one record per finding whichever way the console was asked to
 show them.
 
-## Findings you can act on come first within their band
+## In the findings list, what you can act on comes first
 
-Priority decides the order. Where two findings share a band, the one somebody can act on is listed
-first, a package with a fix, then a release that can be moved, then one with no published fix, and
+This is the order of `--view findings`, one finding per row. Priority decides it. Where two
+findings share a band, the one somebody can act on is listed first, a package with a fix, then a release that can be moved, then one with no published fix, and
 last the ones that belong to a provider.
 
 **This does not change the priority itself.** Priority feeds the gate, so demoting a finding because
@@ -81,12 +81,38 @@ the fix is yours to apply. Deciding that a finding is acceptable is what
 So `operatedBy` and `builtBy` change what is *recommended* and in what order, never what a finding
 is worth.
 
-## Ranking is by the worst thing an action clears
+## How the list is ordered
 
-Actions are ordered by the highest priority among their findings, and only then by how many they
-clear. An action clearing one P1 outranks one clearing forty P4s.
+To order two rows, compare them key by key from the top. The first key where they differ decides.
 
-Volume never promotes: a P1 is not something to trade away for a bigger number.
+1. **Priority.** The highest band among the findings the action clears. An action clearing one P1
+   outranks one clearing forty P4s, and an action with no band comes after every action with one.
+2. **Exploitation.** An action clearing a finding on CISA's Known Exploited Vulnerabilities (KEV)
+   catalog comes first in its band, then one clearing a finding that EPSS, a daily estimate of how
+   likely a flaw is to be exploited in the next 30 days, raised past its threshold. Both apply only
+   where [`config.exploitability`](prioritization.md#exploitability-kev-and-epss) turns them on.
+3. **Severity.** The highest severity among its findings, after adjustment:
+   - the severity KEV or EPSS raised it to, where one did;
+   - else the severity reachability analysis lowered it to, where the vulnerable code is never
+     called;
+   - else the scanner's own rating.
+4. **Count.** How many findings it clears.
+5. **The step within the policy.** Of the two steps of one package's upgrade, the one within the
+   component's [`fixes.upgrade`](../reference/saga-schema.md#configfixes) comes first, because the
+   other presumes it. Both steps rank together, by what either clears, so they sit side by side.
+
+Where two rows match on all five, the one whose most urgent finding comes first in
+`--view findings` comes first, and that list ends on component, repository, location and rule. The
+same findings therefore produce the same list on every run.
+
+**Count breaks ties only.** It depends on how a scanner splits what it reports. One that reports a
+finding per advisory per package counts an old base image in hundreds, and ranked on volume that
+image would outrank a single flaw on KEV.
+
+**Where each key comes from.** The band, the escalation naming `kev` or `epss` with the date its data
+was fetched, and the severity with what adjusted it are on each finding in `report.json` and
+`results.sarif`. `fixes.upgrade` is in the descriptor. To check why one row sits above another,
+compare those values on the findings each row clears.
 
 ## Two descriptor fields change what is recommended
 
