@@ -306,8 +306,11 @@ library are one upgrade, and every vulnerable package inside an image somebody e
 newer image. It uses the same grouping `draugr scan --view actions` prints, so an assistant and a
 terminal cannot describe the same report differently. Each row is an
 [action as `report.json` carries it](../reference/report-schema.md#what-each-action-carries), without
-the list of findings under it. `clears` is the figure the console's heading gives for the rows it
-lists.
+the list of findings under it. `clears` is the figure the rows returned clear between them.
+
+`kind` returns one of the console's lists: `bump`, `code`, `infrastructure`, `credential`, `wait`
+or `decide`. `limit` applies within that list, and `totalActions` and `totalClears` count that list.
+Any other value is an error naming the valid kinds.
 
 | Field | What it counts |
 |---|---|

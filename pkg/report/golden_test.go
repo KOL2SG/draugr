@@ -327,6 +327,8 @@ func goldenEnrichedData() Data {
 func goldenGroupedData() Data {
 	d := goldenFullData()
 	d.View = ViewActions
+	// Two per list, fewer than the code list holds, so a list's "and N more" line is pinned too.
+	d.TopN = 2
 	return d
 }
 
@@ -336,6 +338,8 @@ func goldenGroupedData() Data {
 func goldenCompactData() Data {
 	d := goldenGroupedData()
 	d.View = ViewCompact
+	// The findings cut, not the grouped view's per-list one.
+	d.TopN = goldenFullData().TopN
 	return d
 }
 

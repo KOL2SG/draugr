@@ -2,23 +2,34 @@ DRAUGR  FAIL  draugr-demo 0.0.0  34.5s
 
  3 P1 3 P2 3 P3 1 P4
 
-WHAT TO DO  6 actions clear 8 findings
-  P1  Fix CVE-2019-20477 “PyYAML: command execution through python/object/ap…”
-      component payments · control sca · 1 finding · app/requirements.txt:4 · CVE-2019-20477
+WHAT TO DO  8 actions clear 10 findings
+
+Bump a dependency  1 action clears 2 findings
   P1  Upgrade jinja2 2.10 → 2.11.3
       component payments · control sca · 2 findings · app/requirements.txt:5 · CVE-2019-10906 +1
-  P1  Fix DS-0002 “Image user should not be 'root'”
-      component payments · control iac · 1 finding · app/Dockerfile:1 · DS-0002
+
+Change the code  3 actions clear 4 findings
+  P1  Fix CVE-2019-20477 “PyYAML: command execution through python/object/ap…”
+      component payments · control sca · 1 finding · app/requirements.txt:4 · CVE-2019-20477
   P2  Fix “Detected user input flowing into a raw SQL string”
       Semgrep: tainted-sql-string · Bandit: B608
       control sast · 2 findings · app/main.py:42
-  P2  Fix CVE-2018-1000656 “python-flask: Denial of Service via crafted JSON…”
-      component internal-tool · control sca · 1 finding · app/requirements.txt:2 · CVE-2018-1000656
+  … and 1 action not listed
+
+Change the infrastructure  2 actions clear 2 findings
+  P1  Fix DS-0002 “Image user should not be 'root'”
+      component payments · control iac · 1 finding · app/Dockerfile:1 · DS-0002
+  P3  Fix KSV-0014 “Root file system is not read-only”
+      control iac · 1 finding · deploy/pod.yaml:8 · KSV-0014
+
+Rotate a credential  1 action clears 1 finding
   P2  Remove and rotate private-key
       Identified a Private Key, which may compromise cryptographic security
       component payments · control secrets · 1 finding · app/config.pem:1 · private-key
 
-… and 2 actions not listed.
+Decide  1 action clears 1 finding
+  P3  Replace or accept some-lib, licensed GPL-3.0-only
+      control licenses · 1 finding · go.mod:17 · license/GPL-3.0-only/some-lib
 
 CONTROLS
   iac       FAIL   1 P1 1 P3
@@ -62,7 +73,7 @@ EVIDENCE
   gate        fails on P1
 
 TRY
-  --top 0                every one of them, not the first six
+  --top 0                every action, not the first two in each list
   --view compact         one line each, to see how much there is
   --view findings        the findings themselves, one row each
   draugr explain <rule>  what a rule means and how to fix it
