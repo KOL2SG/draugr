@@ -12,6 +12,24 @@ and move it under a version on release.
 
 _Nothing yet._
 
+## [0.155.0] - 2026-10-26
+
+### Changed
+
+- **The fix list is one list per kind of work.** `--view actions` now shows Bump a dependency, Change the code, Change the infrastructure, Rotate a credential, Wait for a release and Decide as separate lists, each in priority order and showing three actions by default. `--top N` limits each list, not the whole. The MCP `fix_list` tool takes `kind` to return one list.
+
+- **The fix list gives one action per line of code.** Where it gave one per rule, an action now clears every rule that flags the line. A shell command flagged by Bandit and three Semgrep rules is one `sast` action clearing four findings, listing each rule. `results.sarif` still holds one record per finding.
+
+- **Exploited flaws come first within each band.** `--view actions` and the MCP `fix_list` tool rank an action clearing a flaw on CISA's Known Exploited Vulnerabilities catalog first, then one clearing a flaw whose EPSS score is above the configured threshold, then by worst severity, then by findings cleared.
+
+- **SAST findings take their severity from Semgrep's and Bandit's own ratings, so some change band on your first scan.** Semgrep uses each rule's impact and likelihood instead of reading `error` as high. Semgrep `audit` or low confidence, and Bandit low confidence, lower the severity one step. The console shows the scanner's rating under each finding, and `report.json` carries it.
+
+- **`draugr tools install` fetches newer versions of six tools:** cosign 3.1.4, govulncheck 1.9.0, retire 6.1.0, semgrep 1.182.1, syft 1.55.0 and trivy 0.76.1. Run it again to update.
+
+### Fixed
+
+- **A Notary Project signature with an unexpected certificate subject is reported as `provenance-unexpected-identity`.** The provenance control previously reported that it could not run.
+
 ## [0.154.2] - 2026-10-25
 
 ### Fixed
@@ -6387,7 +6405,8 @@ First public preview of Draugr.
 - **Early preview** — the CLI and the Saga schema may change before 1.0.
 - Requires **Trivy** on your `PATH` (and `git` for repository scans).
 
-[Unreleased]: https://github.com/draugr-dev/draugr/compare/v0.154.2...HEAD
+[Unreleased]: https://github.com/draugr-dev/draugr/compare/v0.155.0...HEAD
+[0.155.0]: https://github.com/draugr-dev/draugr/releases/tag/v0.155.0
 [0.154.2]: https://github.com/draugr-dev/draugr/releases/tag/v0.154.2
 [0.154.1]: https://github.com/draugr-dev/draugr/releases/tag/v0.154.1
 [0.154.0]: https://github.com/draugr-dev/draugr/releases/tag/v0.154.0
