@@ -12,6 +12,14 @@ and move it under a version on release.
 
 _Nothing yet._
 
+## [0.157.0] - 2026-10-27
+
+### Changed
+
+- **`draugr tools install` fetches gosec 2.30.0.** A G702 finding now names the call it reaches, as in `Command injection via taint analysis: os/exec.Command`.
+
+- **`fix_list` returns every action in each list unless `limit` is set, and `next` says why its action leads.** The default was three per list, which could drop actions tied with the third. When the action `next` quotes, from `summarize_report` and `scan`, clears a finding on KEV or with a raised EPSS score, `next` names that finding's rule and the signal.
+
 ## [0.156.0] - 2026-10-27
 
 ### Changed
@@ -6437,7 +6445,8 @@ First public preview of Draugr.
 - **Early preview** — the CLI and the Saga schema may change before 1.0.
 - Requires **Trivy** on your `PATH` (and `git` for repository scans).
 
-[Unreleased]: https://github.com/draugr-dev/draugr/compare/v0.156.0...HEAD
+[Unreleased]: https://github.com/draugr-dev/draugr/compare/v0.157.0...HEAD
+[0.157.0]: https://github.com/draugr-dev/draugr/releases/tag/v0.157.0
 [0.156.0]: https://github.com/draugr-dev/draugr/releases/tag/v0.156.0
 [0.155.1]: https://github.com/draugr-dev/draugr/releases/tag/v0.155.1
 [0.155.0]: https://github.com/draugr-dev/draugr/releases/tag/v0.155.0
