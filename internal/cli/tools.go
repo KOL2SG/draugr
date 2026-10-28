@@ -100,7 +100,7 @@ func runToolsOutdated(ctx context.Context, w io.Writer, asJSON bool, client *htt
 		// reads "could not reach npm" as "current", which is the confusion `Drift.Err` is shaped
 		// to prevent and the table mode already avoids.
 		if unreachable > 0 {
-			return fmt.Errorf("%d tool(s) could not be compared", unreachable)
+			return fmt.Errorf("%s could not be compared", english.Count(unreachable, "tool"))
 		}
 		return nil
 	}
@@ -138,7 +138,7 @@ func runToolsOutdated(ctx context.Context, w io.Writer, asJSON bool, client *htt
 	}
 	_, _ = fmt.Fprintf(w, "\n%s\n", col.Paint(tui.StyleMuted, line))
 	if unknown > 0 {
-		return fmt.Errorf("%d tool(s) could not be compared", unknown)
+		return fmt.Errorf("%s could not be compared", english.Count(unknown, "tool"))
 	}
 	return nil
 }
@@ -277,13 +277,17 @@ func installNames(w io.Writer, args []string, opts toolsInstallOptions) ([]strin
 	names := provisionable(required)
 	var unprovisionable []string
 	for _, t := range required {
-		if !tools.Provisionable(t.Binary) {
+		// Found the way `draugr doctor` finds it, so the two commands cannot disagree about
+		// what is missing.
+		if !tools.Provisionable(t.Binary) && !detectTool(context.Background(), t).Found {
 			unprovisionable = appendUnique(unprovisionable, t.Binary)
 		}
 	}
 
 	// The gap is the interesting part. Installing three of five and reporting success leaves
-	// someone one failed scan away from discovering the other two.
+	// someone one failed scan away from discovering the other two. Only what is absent: telling
+	// somebody to install a tool they already have sends them looking for a problem that is not
+	// there, and teaches them to skip the line on the day it names one that is.
 	if len(unprovisionable) > 0 {
 		sort.Strings(unprovisionable)
 		_, _ = fmt.Fprintf(w, "%s needs %s, which Draugr cannot provision. Install %s separately (`draugr doctor %s` says where from).\n\n",
@@ -498,7 +502,7 @@ func runToolsInstall(w io.Writer, in io.Reader, names []string, all bool, opts t
 	}
 
 	if failed > 0 {
-		return fmt.Errorf("%d tool(s) failed to install", failed)
+		return fmt.Errorf("%s failed to install", english.Count(failed, "tool"))
 	}
 	return nil
 }

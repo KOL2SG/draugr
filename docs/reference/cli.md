@@ -194,7 +194,8 @@ packages from under `UNREAD`.
 A directory below the root that holds its own dependency file or `go.mod` is a part of the
 repository. By default the descriptor has one component and names the parts in a comment;
 `--per-directory` writes a component for each, scoped with `paths:`, and the root component
-`ignore:`s them.
+`ignore:`s them. A commented image entry goes on the component whose directory holds the
+Dockerfile.
 
 A JavaScript workspace member stays with its workspace root, whose lockfile resolves it. A member
 is a directory the root `package.json` names under `workspaces` (npm, Yarn, Bun), as an array or as
@@ -1140,8 +1141,26 @@ about components missing either one.
 
 Finds the descriptor the same way [`draugr scan`](#draugr-scan-sagayaml--dir) does: with no
 argument, or with a directory, it uses the `*.saga.yaml` or `*.saga.yml` there. With more than one,
-it asks which on a terminal and otherwise exits naming them. A directory holding none is an error,
-because there is no descriptor to write the answers into.
+it asks which on a terminal and otherwise exits naming them.
+
+A directory holding none has no descriptor to write the answers into. On a terminal, classify
+offers to write one with [`draugr init`](#draugr-init-dir) in that directory, then asks its
+questions about it; the default answer is no:
+
+```console
+$ draugr classify
+No *.saga.yaml in the current directory. Write draugr.saga.yaml with `draugr init`? [y/N]
+```
+
+Declining, or a run with no terminal, writes nothing and exits naming the command that writes the
+descriptor:
+
+```console
+$ draugr classify
+draugr: no *.saga.yaml in the current directory. Run `draugr init` to write one
+$ draugr classify ..
+draugr: no *.saga.yaml in "..". Run `draugr init .. -o ../draugr.saga.yaml` to write one
+```
 
 | Flag | Default | Description |
 |------|---------|-------------|
@@ -1191,7 +1210,7 @@ $ draugr validate
     parse saga: unknown field "failOnn" in config.gate. Check the spelling, or see https://draugr.dev/docs/latest/reference/saga-schema/
 ✗ svc-c/worker.saga.yaml
     parse saga: release.name was removed: it named the project, which is what the top-level `project` names. Move the value there, `project: payments-api`, and a release keeps only its version
-draugr: 3 of 4 Saga file(s) invalid
+draugr: 3 of 4 Saga files invalid
 ```
 
 The section named is the path you write, which is also the heading to look for in the

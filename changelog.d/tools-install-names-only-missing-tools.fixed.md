@@ -1,0 +1,1 @@
+- **`draugr tools install` names only tools that are missing.** A tool Draugr cannot provision, such as `git`, is mentioned only when it is not on `PATH`.

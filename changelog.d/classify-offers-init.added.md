@@ -1,0 +1,1 @@
+- **`draugr classify` offers to write a missing descriptor.** With no `*.saga.yaml` in the directory, on a terminal, it asks to run `draugr init` and then asks its questions. Declining, or a run with no terminal, prints the command to run.

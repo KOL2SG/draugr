@@ -487,3 +487,22 @@ func TestACoverageNoteNamesItsComponent(t *testing.T) {
 		t.Errorf("a one-component run named the component anyway:\n%s", out)
 	}
 }
+
+// The HTML evidence counts SBOM documents with a noun that agrees with the number.
+func TestHTMLCountsSBOMDocuments(t *testing.T) {
+	out := renderWith(t, htmlReporter{}, goldenFullData())
+	if !strings.Contains(out, "2 documents (spdx-json)") {
+		t.Errorf("want the SBOM count with its noun in the evidence:\n%s", out)
+	}
+}
+
+// The caveat on an unclassified run names `draugr classify`, with or without a descriptor: with
+// none, classify offers to write one first.
+func TestUnclassifiedCaveatNamesClassify(t *testing.T) {
+	d := goldenFullData()
+	d.Unclassified = true
+	out := renderWith(t, consoleReporter{}, d)
+	if !strings.Contains(out, "`draugr classify` makes them describe this application.") {
+		t.Errorf("the caveat has to name the command that classifies:\n%s", out)
+	}
+}
