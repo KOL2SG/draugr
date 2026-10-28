@@ -18,13 +18,17 @@ order: 150
 ## What it does
 
 Checks out the component's repository, then runs
-`semgrep scan --sarif --json-output <file> --quiet --no-error --metrics=off --config p/default <dir>`
+`semgrep scan --sarif --json-output <file> --verbose --max-target-bytes 1000000 --timeout-threshold 3 --no-error --metrics=off --config p/default <dir>`
 to analyze the project's **own source code** for security bugs (injection, unsafe APIs, etc.). See
 the [SAST glossary entry](../../docs/reference/glossary.md#sast-static-application-security-testing).
 
 - `--json-output` writes the same results as JSON to a temporary file, which Draugr reads for the
   rule metadata the SARIF leaves out (see [Severity](#severity)) and then removes. It needs
   Semgrep 1.70.0 or later; an earlier Semgrep refuses the option and the scan reports the error.
+- `--verbose` makes the JSON report list the files Semgrep skipped, with the reason, which it
+  leaves out otherwise. Draugr reads the list for [unread files](#unread).
+- `--max-target-bytes 1000000` skips files over 1 MB. `--timeout-threshold 3` stops running rules
+  on a file after three timeouts.
 - `--no-error` keeps the process successful when findings exist (findings live in the SARIF
   report, not the exit code; the [`sast`](../controllers/sast.md) controller judges severity).
 - `--metrics=off` avoids sending scan telemetry to the Semgrep registry.
@@ -52,6 +56,24 @@ the [SAST glossary entry](../../docs/reference/glossary.md#sast-static-applicati
   part that comes from the configured path, and the rule is `no-eval` on every machine. A rule in a
   subdirectory of a configured directory keeps the subdirectory (`nested.no-eval`). Exclusions and
   `draugr diff` match on this id.
+
+## Unread
+
+Semgrep finishes with exit 0 and reports findings only from the files it checked. Draugr reads two
+gaps from the JSON report and lists each file as an `unread-files` caveat:
+
+- **A file over 1 MB**, which Semgrep lists under `paths.skipped` with the reason
+  `exceeded_size_limit` and does not scan: `over 1 MB, not scanned`. Semgrep applies the limit
+  before it matches files to rule languages, so Draugr lists the file only where a configured rule
+  reads its language, by extension, file name or `#!` line. A ruleset Semgrep fetches is taken to
+  read every file.
+- **A rule that timed out on a file**, an entry in `errors` of type `Timeout`: `1 rule timed out,
+  not checked: "x"`. When three rules time out on one file, Semgrep runs no further rule on it, and
+  the reason reads `3 rules timed out, other rules not run`.
+
+A file Semgrep was told to skip, by `.semgrepignore`, `.gitignore` or a component's `ignore:`, is
+not listed. [`sast`](../controllers/sast.md#unread) has what to do about each and how to fail the
+run on them.
 
 ## Severity
 
